@@ -1,7 +1,8 @@
 <?php
 function isHeaderSafe($header)
 {
-    return strpos($header, "Transfer-Encoding") === false && strpos($header, "Content-Encoding") === false  && strpos($header, "Content-Length") === false && $header != "";
+    $lowerCaseHeader = strtolower($header);
+    return (strpos($lowerCaseHeader, "transfer-encoding") === false && strpos($lowerCaseHeader, "content-encoding") === false  && strpos($lowerCaseHeader, "content-length") === false && $lowerCaseHeader != "");
 }
 
 function sendHeaders($headers){

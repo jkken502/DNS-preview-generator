@@ -44,17 +44,24 @@ function displayPreviewCurl($url, $domain,$serverDomain)
     
     foreach (getallheaders() as $header => $value)
     {
-        if ($header == "Host")
+        if (strtolower($header) == "host")
         {
             array_push($requestHeaders, "Host: " . $domain);
         }
         else
-        if($header=="Content-Length"){
+        if(strtolower($header)=="content-length"){
+            
+        }
+        else
+        if(strtolower($header)=="referer"){
             
         }
         else
         {
-            array_push($requestHeaders, "$header: ".str_replace($serverDomain ,$domain, $value));
+            $headerReplaced = str_replace("-".$serverDomain ,".".$domain, $value);
+            $header_replaced = str_replace($serverDomain ,$domain, $headerReplaced);
+            
+            array_push($requestHeaders, "$header: ". $headerReplaced);
         }
     }
     
@@ -90,34 +97,44 @@ function displayPreview()
         echo "Error please try again.<br>";
         displayForm();
     }
-    $sourceSubdomain = implode('.', explode('.', $allSubdomains, -1));
+    $sourceSubdomain = implode('-', explode('-', $allSubdomains, -1));
     $subdomainArray = explode('.', $allSubdomains);
-
-    $previewID = $subdomainArray[count($subdomainArray) - 1];
+    $lastSubdomainArray = explode('-',$subdomainArray[count($subdomainArray) - 1]);
+    $previewID = $lastSubdomainArray[count($lastSubdomainArray) - 1];
+    
+    //echo $sourceSubdomain ."<br>";
+    //echo $previewID . "<br>";
+    //die();
 
     if ($previewID != "")
     {
         $mysqlResults = getDomainAndIpFromDatabase($previewID,$sourceSubdomain);
-        if (count($mysqlResults) < 2 || !isArrayValid($mysqlResults))
+        if (count($mysqlResults) < 3 || !isArrayValid($mysqlResults))
         {
             die("Unable to retrive domain and IP from the database.");
         }
         $ip = $mysqlResults[0];
         $domain = $mysqlResults[1];
-        $curl = displayPreviewCurl($protocol . $ip . $path, $domain,$previewID . "." . SERVER_HOST);
+        $sourceSubdomain = $mysqlResults[2]?$mysqlResults[2]:"";
+        $curl = displayPreviewCurl($protocol . $ip . $path, $sourceSubdomain?"$sourceSubdomain.$domain":"$domain",$previewID . "." . SERVER_HOST);
         if (count($curl) < 2 || !isArrayValid($curl))
         {
             die("Curl was unable to fetch the website.");
         }
         $header = str_replace($domain, $previewID . "." . SERVER_HOST, $curl[0]);
+        $header = str_replace($sourceSubdomain . "." . $domain, $sourceSubdomain . "-" . $previewID . "." . SERVER_HOST, $header);
+        $header = str_replace("." . $domain, "-" . $previewID . "." . SERVER_HOST, $header);
         $responseHeaders = explode("\r\n", $header);
         $body = $curl[1];
         if ($protocol == "http://")
         {
             $body = str_replace("https://" . $domain, "http://" . $previewID . "." . SERVER_HOST, $body);
         }
+        $body = str_replace($sourceSubdomain . "." . $domain, $sourceSubdomain . "-" . $previewID . "." . SERVER_HOST, $body);
+            $body = str_replace("." . $domain, "-" . $previewID . "." . SERVER_HOST, $body);
         $body = str_replace($domain, $previewID . "." . SERVER_HOST, $body);
-        sendHeaders($responseHeaders);
+        $sentHeaders = sendHeaders($responseHeaders);
+        //die(var_dump($sentHeaders));
         echo $body;
     }
     else
