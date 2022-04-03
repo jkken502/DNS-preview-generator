@@ -36,18 +36,14 @@ function getDomainAndIpFromDatabase($previewID,$sourceSubdomain)
     $stmt->bind_param("s", $previewID);
     $stmt->execute();
     $result = $stmt->get_result();
-    $returnArray = [];
     if (mysqli_num_rows($result) > 0)
     {
         if ($row = mysqli_fetch_assoc($result))
         {
-            $ip = $row['ip'];
-            $domain = $row['url'];
-            $domain = $sourceSubdomain != "" ? $sourceSubdomain . "." . $domain : $domain;
-            array_push($returnArray, $ip);
-            array_push($returnArray, $domain);
+            $returnArray=["ip" => $row['ip'], "url" => $row['url']];
+            mysqli_close($conn);
+            return $returnArray;
         }
     }
     mysqli_close($conn);
-    return $returnArray;
 }
