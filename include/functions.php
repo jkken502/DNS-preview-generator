@@ -76,5 +76,5 @@ function handleForm()
 
 function displayForm()
 {
-    echo '<form method="post"> <div><input type="text" placeholder="IP Address" title="IP Address" name="ip" required></div> <div><input type="text" placeholder="domain.com" title="domain" name="url" required></div> <div><input type="submit" value="submit"></div></form>';
+    echo '<form method="post"> <div><input type="text" placeholder="IP Address" title="IP Address" name="ip" required></div> <div><input type="text" placeholder="domain.com" title="domain" name="url" required></div> <div><input type="submit" value="submit"></div></form><script src="/scripts/autofill-form-query.js"></script>';
 }
